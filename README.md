@@ -78,5 +78,11 @@
 
 ### spring-security
 
-- **[form-login](https://github.com/Chiptune93/springboot-examples/tree/spring-security)**
-    - Spring Security 5.7.X 
+- **[form-login](https://github.com/Chiptune93/springboot.java.example/tree/feature/spring-security/form-login)**
+    - Spring Security 5.7.X
+    - Simple Form Login Example
+    - Custom Objects
+      - UserDetails
+      - UserDetailsService
+    - No Password Encoder
+    - No Authority
