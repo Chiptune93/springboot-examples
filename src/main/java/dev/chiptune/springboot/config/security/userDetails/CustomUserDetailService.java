@@ -1,4 +1,4 @@
-package dev.chiptune.springboot.config;
+package dev.chiptune.springboot.config.security.userDetails;
 
 import dev.chiptune.springboot.entity.Users;
 import dev.chiptune.springboot.repo.UsersRepository;

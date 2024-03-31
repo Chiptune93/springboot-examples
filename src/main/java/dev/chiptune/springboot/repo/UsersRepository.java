@@ -4,5 +4,7 @@ import dev.chiptune.springboot.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UsersRepository extends JpaRepository<Users, Long> {
-    public Users findByUsername(String username);
+    Users findByUsername(String username);
+
+    Users findByUsernameAndPassword(String username, String password);
 }

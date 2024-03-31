@@ -20,5 +20,11 @@ public class UsersService {
     public List<Users> findAllUsers() {
         return userRepository.findAll();
     }
+
+    public Users findByUsernameAndPassword(String username, String password) {
+        System.out.println("username -> " + username);
+        System.out.println("password -> " + password);
+        return userRepository.findByUsernameAndPassword(username, password);
+    }
 }
 
