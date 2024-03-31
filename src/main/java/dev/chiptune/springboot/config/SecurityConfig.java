@@ -12,6 +12,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -81,9 +83,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
 
                 )
-                .addFilterAfter(customAuthenticationFilter(), CsrfFilter.class)
+                // .addFilterAfter(customAuthenticationFilter(), CsrfFilter.class)
                 // .addFilterAt(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                //.addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
         ;
         return http.build();
     }
@@ -107,7 +109,7 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/loginProc", HttpMethod.POST.name())
         );
         // filter.setAuthenticationManager(new CustomAuthenticationManager(usersService));
-        filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
+        filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(new SimpleUrlAuthenticationSuccessHandler("/home"));
         filter.setAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"));
         return filter;
@@ -119,9 +121,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+    public AuthenticationManager authenticationManager()
             throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+        ProviderManager authenticationManager = null;
+        try {
+            authenticationManager = (ProviderManager) authenticationConfiguration.getAuthenticationManager();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        authenticationManager.getProviders().add(authenticationProvider());
+        return authenticationManager;
     }
 
 }

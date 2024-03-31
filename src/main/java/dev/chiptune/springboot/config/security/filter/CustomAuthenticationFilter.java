@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 
 public class CustomAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -22,6 +23,6 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
         String email = request.getParameter("username");
         String credentials = request.getParameter("password");
 
-        return getAuthenticationManager().authenticate(new CustomAuthenticationToken(email, credentials, null));
+        return getAuthenticationManager().authenticate(new CustomAuthenticationToken(email, credentials, Collections.emptyList()));
     }
 }
