@@ -1,7 +1,6 @@
 package dev.chiptune.springboot.config;
 
 import dev.chiptune.springboot.config.security.filter.CustomAuthenticationFilter;
-import dev.chiptune.springboot.config.security.provider.CustomAuthenticationManager;
 import dev.chiptune.springboot.config.security.provider.CustomAuthenticationProvider;
 import dev.chiptune.springboot.config.security.userDetails.CustomUserDetailService;
 import dev.chiptune.springboot.service.UsersService;
