@@ -84,8 +84,8 @@ public class SecurityConfig {
 
                 )
                 // .addFilterAfter(customAuthenticationFilter(), CsrfFilter.class)
-                // .addFilterAt(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                //.addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
         ;
         return http.build();
     }
@@ -105,9 +105,7 @@ public class SecurityConfig {
 
     @Bean
     public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
-        CustomAuthenticationFilter filter = new CustomAuthenticationFilter(
-                new AntPathRequestMatcher("/loginProc", HttpMethod.POST.name())
-        );
+        CustomAuthenticationFilter filter = new CustomAuthenticationFilter();
         // filter.setAuthenticationManager(new CustomAuthenticationManager(usersService));
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(new SimpleUrlAuthenticationSuccessHandler("/home"));

@@ -3,23 +3,16 @@ package dev.chiptune.springboot.config.security.filter;
 import dev.chiptune.springboot.config.security.token.CustomAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Collections;
 
-public class CustomAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
-
-    public CustomAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
-        super(requiresAuthenticationRequestMatcher);
-    }
+public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         String email = request.getParameter("username");
         String credentials = request.getParameter("password");
 
