@@ -12,13 +12,16 @@ public class UsersService {
 
     private final UsersRepository userRepository;
 
-    @Autowired
     public UsersService(UsersRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     public List<Users> findAllUsers() {
         return userRepository.findAll();
+    }
+
+    public Users findUserForLogin(String username, String password) {
+        return userRepository.findByUsernameAndPassword(username, password);
     }
 }
 

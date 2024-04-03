@@ -1,7 +1,13 @@
 package dev.chiptune.springboot.config;
 
+import dev.chiptune.springboot.config.filter.JwtAuthenticationEntryPoint;
+import dev.chiptune.springboot.config.filter.JwtAuthenticationFilter;
+import dev.chiptune.springboot.config.token.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
@@ -11,7 +17,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,60 +28,42 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Configuration
+@RequiredArgsConstructor
 @EnableWebSecurity(debug = true)
 public class SecurityConfig {
 
+    private final JwtTokenProvider jwtTokenProvider;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+        return http
                 .csrf(csrf -> csrf
+                        // h2 콘솔 경로 미적용
                         .ignoringAntMatchers("/h2-console/**")
+                        // 토큰 발급 URL은 CSRF 미적용
+                        .ignoringAntMatchers("/getToken")
+                        .ignoringAntMatchers("/refreshAccessToken")
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
-                .cors().disable()
-                .httpBasic().disable()
+                // h2 사용을 위한 헤더 설정
                 .headers().frameOptions().disable()
                 .and()
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/home")
-                        .failureUrl("/login")
-                        .loginProcessingUrl("/loginProc")
-                        .successHandler(
-                                new AuthenticationSuccessHandler() {
-                                    @Override
-                                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                                        System.out.println("authentication : " + authentication.getName());
-                                        response.sendRedirect("/home");
-                                    }
-                                }
-                        )
-                        .failureHandler(
-                                new AuthenticationFailureHandler() {
-                                    @Override
-                                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-                                        System.out.println("exception : " + exception.getMessage());
-                                        response.sendRedirect("/login");
-                                    }
-                                }
-                        )
-                        .permitAll()
-                )
-                .logout()
-                .and()
+                .cors().disable()
+                .formLogin().disable() // 폼 로그인 비활성화
+                .httpBasic(Customizer.withDefaults()) // Http 요청에 대한 설정
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(new AntPathRequestMatcher("/sample")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/login")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
+                        // 토큰 발급 구간은 인증 체크 안함.
+                        .requestMatchers(new AntPathRequestMatcher("/getToken")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/refreshAccessToken")).permitAll()
+                        .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .anyRequest().authenticated()
-
-                );
-
-        return http.build();
-    }
-
-    @Bean
-    CustomUserDetailService customUserDetailService() {
-        return new CustomUserDetailService();
+                )
+                .exceptionHandling() // 에러 핸들링 정의
+                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()) // 인증 과정에서의 Exception Handling 클래스
+                .and()
+                // JWT Token 인증 필터를 Http Basic 요청 처리 필터인 BasicAuthenticationFilter 전으로 등록.
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), BasicAuthenticationFilter.class)
+                .build();
     }
 
     // 비밀번호 인코딩을 위해 NoOpPasswordEncoder를 사용하는 PasswordEncoder 빈을 등록
