@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .and()
                 .cors().disable()
                 .formLogin().disable() // 폼 로그인 비활성화
-                .httpBasic(Customizer.withDefaults()) // Http 요청에 대한 설정
+                .httpBasic().disable() // JWT 인증에서는 HttpBasic을 사용하지 않는다.
                 .authorizeHttpRequests(authz -> authz
                         // 토큰 발급 구간은 인증 체크 안함.
                         .requestMatchers(new AntPathRequestMatcher("/getToken")).permitAll()
