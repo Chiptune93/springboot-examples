@@ -1,5 +1,6 @@
 package dev.chiptune.springboot.service;
 
+import dev.chiptune.springboot.dataRepo.RedisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ public class RedisService {
     private final StringRedisTemplate redisTemplate;
 
     @Autowired
-    public RedisService(StringRedisTemplate redisTemplate) {
+    public RedisService(StringRedisTemplate redisTemplate, RedisRepository redisRepository) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -23,4 +24,5 @@ public class RedisService {
     public String getStringValue(String key) {
         return redisTemplate.opsForValue().get(key);
     }
+
 }

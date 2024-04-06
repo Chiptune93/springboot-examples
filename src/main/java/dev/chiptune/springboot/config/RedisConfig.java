@@ -1,9 +1,9 @@
 package dev.chiptune.springboot.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -13,6 +13,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 
 @Configuration
+@EnableJdbcRepositories(
+        basePackages = {"dev.chiptune.springboot.dataRepo"}
+//        , transactionManagerRef = "postgresTransactionManager"
+)
 public class RedisConfig {
 
     // @Value 어노테이션을 사용하여 application.properties 파일의
