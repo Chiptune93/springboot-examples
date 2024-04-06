@@ -44,3 +44,102 @@ OK
 "boo"
 ```
 
+### Redis Config 설정
+
+- 연결 객체 및 해당 연결을 사용하는 레디스 템플릿 설정
+
+```java
+@Bean
+// RedisConnectionFactory 빈을 생성합니다. 이 빈은 Redis 서버에 연결하기 위한 커넥션 팩토리 역할을 합니다.
+public RedisConnectionFactory redisConnectionFactory() {
+    // RedisStandaloneConfiguration 객체를 생성하여 Redis 서버의 호스트 이름, 포트, 비밀번호를 설정합니다.
+    RedisStandaloneConfiguration redisConfiguration = new RedisStandaloneConfiguration();
+    redisConfiguration.setHostName(redisHost);
+    redisConfiguration.setPort(redisPort);
+    redisConfiguration.setPassword(redisPassword);
+    // LettuceConnectionFactory를 사용하여 RedisStandaloneConfiguration 설정을 적용합니다.
+    // Lettuce는 Redis를 위한 비동기 클라이언트 라이브러리 중 하나입니다.
+    return new LettuceConnectionFactory(redisConfiguration);
+}
+
+@Bean
+// RedisTemplate 빈을 생성합니다. 이 빈은 Redis 데이터 액세스 코드에서 사용되며,
+// Redis 커맨드 실행을 위한 고수준 추상화를 제공합니다.
+public RedisTemplate<String, Object> redisTemplate() {
+    RedisTemplate<String, Object> template = new RedisTemplate<>();
+    // 위에서 생성한 RedisConnectionFactory를 RedisTemplate에 설정합니다.
+    template.setConnectionFactory(redisConnectionFactory());
+    // Redis의 Key와 Value를 직렬화/역직렬화하기 위한 Serializer를 설정합니다.
+    // Key는 StringRedisSerializer를 사용하여 처리합니다.
+    template.setKeySerializer(new StringRedisSerializer());
+    // Value는 Object 타입으로, GenericToStringSerializer를 사용하여 처리합니다.
+    // GenericToStringSerializer는 Java 객체를 문자열로 직렬화/역직렬화하는 일반적인 방법을 제공합니다.
+    template.setValueSerializer(new GenericToStringSerializer<>(Object.class));
+    return template;
+}
+```
+
+
+### 테스트
+
+#### 테스트 메소드를 통한 확인
+
+```java
+@SpringBootTest
+public class RedisServiceTest {
+
+    @MockBean
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
+
+    @Autowired
+    @InjectMocks // RedisService 내부의 MockBean을 자동으로 주입
+    private RedisService redisService;
+
+    @BeforeEach
+    void setUp() {
+        // StringRedisTemplate 목 객체의 opsForValue() 메서드가 호출될 때 valueOperations 목 객체를 반환하도록 설정
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+    }
+
+    @Test
+    void setStringValueTest() {
+        // 실행
+        redisService.setStringValue("testKey", "testValue");
+
+        // 검증: valueOperations의 set 메서드가 "testKey", "testValue"로 호출되었는지 검증
+        verify(valueOperations).set("testKey", "testValue");
+    }
+
+    @Test
+    void getStringValueTest() {
+        // 준비: "testKey"에 대해 "testValue"를 반환하도록 설정
+        when(valueOperations.get("testKey")).thenReturn("testValue");
+
+        // 실행
+        String result = redisService.getStringValue("testKey");
+
+        // 검증: 결과값이 "testValue"인지 확인
+        assert result.equals("testValue");
+
+        // 검증: valueOperations의 get 메서드가 "testKey"로 호출되었는지 검증
+        verify(valueOperations).get("testKey");
+    }
+}
+```
+
+#### 테스트용 컨트롤러 작성
+
+```java
+@PostMapping("/redis")
+    public String redis() {
+        redisService.setStringValue("test", "testStringValue");
+        return redisService.getStringValue("test");
+    }
+```
+
+#### 테스트
+
+![스크린샷 2024-04-07 오전 2.18.58.png](src%2Fmain%2Fresources%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-04-07%20%EC%98%A4%EC%A0%84%202.18.58.png)
