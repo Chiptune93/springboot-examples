@@ -1,0 +1,7 @@
+myapp:
+  feature:
+    enabled: false
+
+logging:
+  level:
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG

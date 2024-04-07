@@ -1,121 +1,45 @@
-# springboot-examples
+## Conditional Property
 
-다양한 스프링 부트 예제를 기록하기 위한 프로젝트입니다.
+application.yml에 등록한 설정 값에 따라 Config를 등록하거나 등록하지 않도록 제어하는 예제
+`@Profile()` 어노테이션으로도 제어할 수 있으나, 프로파일 활성화를 제외하고 특정 값으로만 제어할 수 있도록 구성한다.
 
-## Springboot Version
+### 1. application.yml 설정 추가
 
-- [x] Springboot 2.7.18
-- [x] Java 11
+```yaml
+myapp:
+  feature:
+    enabled: true
+```
 
+위 설정에서 `myapp.feature.enabled` 값을 `true` 또는 `false`로 설정하여 기능을 활성화하거나 비활성화할 수 있습니다.
 
-## Branches
+### 2. Configuration 클래스에 @ConditionalOnProperty 어노테이션 적용
 
-### **master**
+```java
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-기본 브랜치, 해당 브랜치 기준으로 확장되고 있습니다.
+@Configuration
+@ConditionalOnProperty(name = "myapp.feature.enabled", havingValue = "true", matchIfMissing = false)
+public class MyFeatureConfiguration {
 
----
+    @Bean
+    public MyFeature myFeature() {
+        // MyFeature 인스턴스 생성 로직
+        return new MyFeature();
+    }
+}
+```
 
-### **[aop](https://github.com/Chiptune93/springboot-examples/tree/aop)**
+`@ConditionalOnProperty` 어노테이션의 `name` 속성에는 확인할 프로퍼티의 이름을 지정하고, `havingValue` 속성에는 조건을 충족하기 위해 프로퍼티가 가져야 하는 값을 지정합니다. `matchIfMissing` 속성을 `false`로 설정하면, 해당 프로퍼티가 정의되지 않았을 때 조건이 충족되지 않도록 합니다(기본값은 `true`).
 
-- LogAspect
-    - 메소드 실행 전/후로 로그를 남기기 위한 Log AOP 클래스
-- NoLogging
-  - Log AOP 에서 특정 클래스/메소드에 AOP 미적용하기 위한 어노테이션 클래스
-- RunningTimeAspectForSpring
-  - Spring 에서 실행시간 계산하는 AOP 클래스 등록 및 사용.
-- RunningTimeAspectForSpringBoot
-  - SpringBoot 에서 실행시간 계산하는 AOP 클래스 사용.
+### 테스트
 
----
+#### myapp.feature.enabled == true
 
-### **[aync-config](https://github.com/Chiptune93/springboot-examples/tree/aync-config)**
+![스크린샷 2024-04-07 오후 8.52.03.png](src%2Fmain%2Fresources%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-04-07%20%EC%98%A4%ED%9B%84%208.52.03.png)
 
-- AsyncConfig
-  - 비동기 처리를 위한 스레드 실행 계획 설정 클래스
+#### myapp.feature.enabled == false
 
----
-
-### **[cors](https://github.com/Chiptune93/springboot-examples/tree/cors)**
-
-- SampleController
-    - 컨트롤러 레벨에서 CORS를 컨트롤하기 위한 설정 예시
-- WebConfig
-    - SpringBoot Config 레벨에서 CORS를 컨트롤하기 위한 설정 예시
-- CorsFilter
-    - Filter를 이용한 CORS 처리 예시
-
----
-
-### **[dynamic-datasource](https://github.com/Chiptune93/springboot-examples/tree/dynamic-datasource)**
-
-- SQLConfig
-    - 마스터/슬레이브 데이터베이스 설정을 위한 멀티 데이터 소스 예시
-- SQLRoutingDataSource
-    - 어노테이션을 통한 분기 처리용 클래스
-
----
-
-### **[file-upload](https://github.com/Chiptune93/springboot-examples/tree/file-upload)**
-   
-- 파일 업로드/다운로드 예제 구현
-
----
-
-### **[h2-database](https://github.com/Chiptune93/springboot-examples/tree/h2-database)**
-
-- h2-database를 간단히 사용하는 예제
-
-
-### **[jsp-for-view](https://github.com/Chiptune93/springboot-examples/tree/jsp-for-view)**
-- springboot use jsp for view
-
----
-
-### **[msa-architecture](https://github.com/Chiptune93/springboot-examples/tree/msa-architecture)**
-- MSA 구조를 위한 아키텍처 예시
-
----
-
-### **[restapi](https://github.com/Chiptune93/springboot-examples/tree/restapi)**
-- REST API 구현 예제
-
----
-
-### **[spring-cloud](https://github.com/Chiptune93/springboot-examples/tree/spring-cloud)**
-- web client & server for spring cloud
-
----
-
-### **[swagger](https://github.com/Chiptune93/springboot-examples/tree/swagger)**
-- 스웨거 사용 예제
-
----
-
-### **[Thymeleaf](https://github.com/Chiptune93/springboot-examples/tree/thymeleaf)**
-- 타임리프를 빠르게 사용하기 위한 예제
-
----
-
-### **[spring-data-jdbc](https://github.com/Chiptune93/springboot-examples/tree/spring-data-jdbc)**
-- spring-data-jdbc 예제
-
----
-
-## feature
-
-### spring-security 5.7
-
-### **[jwt-token](https://github.com/Chiptune93/springboot.java.example/tree/feature/spring-security/jwt-token)**
-- JWT Token 인증 방식 구현
-- 최대한 간단하게 구현하려고 노력한 버전
-
----
- 
-### **[form-login](https://github.com/Chiptune93/springboot.java.example/tree/feature/spring-security/form-login)**
-- 폼 로그인 예제를 구현
-- 시큐리티 클래스 중, 구현한 것
-    - UserDetails
-    - UserDetailsService
-- 암호화 인코더 없음
-- 인가 처리 하지 않음
+![스크린샷 2024-04-07 오후 8.53.03 1.png](src%2Fmain%2Fresources%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-04-07%20%EC%98%A4%ED%9B%84%208.53.03%201.png)
