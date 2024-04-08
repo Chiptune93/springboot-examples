@@ -18,6 +18,16 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    /* lombok */
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    // 테스트용 데이터베이스 구성
+    implementation group: 'com.h2database', name: 'h2', version: '2.1.214'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    // ehCache 사용에 필요한 의존성 추가.
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.ehcache:ehcache:3.8.1")
+    implementation("javax.cache:cache-api:1.1.1")
 }
 
 tasks.named('test') {

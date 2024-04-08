@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    hikari:
+      jdbc-url: jdbc:h2:mem:h2-test;TRACE_LEVEL_FILE=4;MODE=MySQL
+      driver-class-name: org.h2.Driver
+      username: sa
+      password:
+      maximum-pool-size: 10
+  h2:
+    console: # H2 Console 사용 및 경로 설정
+      enable: true
+      path: /h2-console
+  # 캐시 설정
+  cache:
+    jcache:
+      config: classpath:ehcache.xml

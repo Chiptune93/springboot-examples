@@ -1,121 +1,245 @@
-# springboot-examples
+## EhCache3 적용하기
 
-다양한 스프링 부트 예제를 기록하기 위한 프로젝트입니다.
+Ehcache3 버전부터는 JSR-107을 자바 표준 인터페이스를 구현하였다. 캐시에 대한 자바 표준 인터페이스를 JCache 라고 한다. JPA 구현체에 Hibernate 와 EclipseLink 등이 있는 것
+처럼 JCache 구현체 중 하나가 Ehcache3 이다.
 
-## Springboot Version
+### 공식 문서
 
-- [x] Springboot 2.7.18
-- [x] Java 11
+[https://www.ehcache.org/documentation/3.8/getting-started.html](https://www.ehcache.org/documentation/3.8/getting-started.html)
+
+위 페이지에서 시작 설정하는 법을 참고할 수 있다.
+ehCache를 사용하기 위해서 설정하는 방법은 XML과 Java Config 2가지 방식이 존재한다.
+
+### 스프링 부트에 적용하기
+
+스프링 부트는 `@EnableCaching` 어노테이션이 활성화 된 경우, 캐시 빈을 자동으로 구성하도록 되어있다.
+[#참고](https://docs.spring.io/spring-framework/docs/5.0.13.RELEASE/spring-framework-reference/integration.html#cache)
+
+특정 캐시 라이브러리를 추가 하지 않으면 기본으로 캐시 매니저를 구성하지만, 운영 환경에서는 권장하지 않는다고 한다.
+[#참고](https://docs.spring.io/spring-boot/docs/2.0.x/reference/html/boot-features-caching.html#boot-features-caching-provider-jcache)
+
+스프링 부트에서는 아래 캐시 매니저를 순서대로 찾으려 하고, 존재하는 경우 해당 캐시 매니저를 구성한다.
+
+1. Generic
+2. JCache (JSR-107) (EhCache 3, Hazelcast, Infinispan, and others)
+3. EhCache 2.x
+4. Hazelcast
+5. Infinispan
+6. Couchbase
+7. Redis
+8. Caffeine
+9. Simple
+
+여기서 우리가 사용할 것은 EhCache3 이다.
+
+### 의존성 추가하기
+
+```groovy
+// ehCache 사용에 필요한 의존성 추가.
+implementation("org.springframework.boot:spring-boot-starter-cache")
+implementation("org.ehcache:ehcache:3.8.1")
+implementation("javax.cache:cache-api:1.1.1")
+```
+
+### 설정 구성하기
+
+JavaConfig 방식과 XML 구성 방식이 있다. JavaConfig 보다는 XML로 관리하는 것이 
+더 편하다고 보며, 이 설정 파일을 명시적으로 캐시 매니저 빈에서 가져와 사용하도록 구성하는 것이 
+그나마 나아 보인다.
+
+#### XML 설정 파일 예시
+
+해당 파일은 `classpath:` 경로인 `resources` 폴더 밑에 위치한다.
+
+**ehcache.xml**
+```xml
+<config
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns='http://www.ehcache.org/v3'
+        xmlns:jsr107="http://www.ehcache.org/v3/jsr107"
+        xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core.xsd
+        http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.0.xsd">
+
+    <service>
+        <!-- JMX를 통한 캐시 관리 및 통계 수집 활성화 -->
+        <jsr107:defaults enable-management="true" enable-statistics="true"/>
+    </service>
+
+    <cache alias="UserCache"><!-- 개별 캐시 설정, 캐시의 고유 이름(alias) 지정 -->
+        <key-type>java.lang.String</key-type><!-- 캐시 키 타입 지정 -->
+        <value-type>dev.chiptune.springboot.entity.Users</value-type><!-- 캐시 값 타입 지정 -->
+
+        <expiry>
+            <!-- 캐시 항목의 TTL(Time-To-Live), 30분 후 만료 -->
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+
+        <listeners>
+            <listener>
+                <!-- 리스너 클래스 위치 -->
+                <class>dev.chiptune.springboot.listener.CustomCacheEventListener</class>
+                <!-- 비동기 방식 사용, 캐시 동작을 블로킹하지 않고 이벤트를 처리, SYNCHRONOUS와 반대 -->
+                <event-firing-mode>ASYNCHRONOUS</event-firing-mode>
+                <!-- 이벤트 처리 순서 설정 X, ORDERED와 반대 -->
+                <event-ordering-mode>UNORDERED</event-ordering-mode>
+                <!-- 리스너가 감지할 이벤트 설정(EVICTED, EXPIRED, REMOVED, CREATED, UPDATED) -->
+                <events-to-fire-on>EVICTED</events-to-fire-on>
+                <events-to-fire-on>EXPIRED</events-to-fire-on>
+                <events-to-fire-on>REMOVED</events-to-fire-on>
+                <events-to-fire-on>CREATED</events-to-fire-on>
+                <events-to-fire-on>UPDATED</events-to-fire-on>
+            </listener>
+        </listeners>
+
+        <resources>
+            <!-- JVM 힙 메모리에 캐시 저장 -->
+            <heap unit="entries">100</heap>
+            <!-- off-heap(외부 메모리)에 캐시 저장 -->
+            <offheap unit="MB">10</offheap>
+        </resources>
+
+    </cache>
+
+</config>
 
 
-## Branches
+```
 
-### **master**
+application.yml에도 해당 설정 파일의 위치를 알려주는 설정을 추가한다.
 
-기본 브랜치, 해당 브랜치 기준으로 확장되고 있습니다.
+```yml
+spring:
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
+```
+
+그리고 `@EnableCaching` 어노테이션을 추가한다.
+
+### 리스너 등록
+
+캐시작업이 일어날 때, 이를 모니터링 할 이벤트 리스너를 등록한다.
+
+```java
+public class CustomCacheEventListener implements CacheEventListener<Object, Object> {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomCacheEventListener.class);
+
+    @Override
+    public void onEvent(CacheEvent<?, ?> cacheEvent) {
+        logger.info("━━━━━━━━━━━━━━━━━BaseCacheEventListener START━☂☄");
+        logger.info("☆ﾟ.*･｡ﾟ Cache Key : " + cacheEvent.getKey() + " ᝯ◂ ࠫ‘֊‘ ࠫ▾ಎ➹");
+        logger.info("☆ﾟ.*･｡ﾟ Cache Old Value : " + cacheEvent.getOldValue() + " ᝯ◂ ࠫ‘֊‘ ࠫ▾ಎ➹");
+        logger.info("☆ﾟ.*･｡ﾟ Cache New Value : " + cacheEvent.getNewValue() + " ᝯ◂ ࠫ‘֊‘ ࠫ▾ಎ➹");
+        logger.info("━━━━━━━━━━━━━━━━━BaseCacheEventListener END━☂☄");
+    }
+}
+```
 
 ---
 
-### **[aop](https://github.com/Chiptune93/springboot-examples/tree/aop)**
+### 주의사항!
 
-- LogAspect
-    - 메소드 실행 전/후로 로그를 남기기 위한 Log AOP 클래스
-- NoLogging
-  - Log AOP 에서 특정 클래스/메소드에 AOP 미적용하기 위한 어노테이션 클래스
-- RunningTimeAspectForSpring
-  - Spring 에서 실행시간 계산하는 AOP 클래스 등록 및 사용.
-- RunningTimeAspectForSpringBoot
-  - SpringBoot 에서 실행시간 계산하는 AOP 클래스 사용.
+위 단계까지만 해도 기본적으로 ehcache를 사용할 수 있다.
+만약, 프로젝트에 redis를 이미 사용 중이라면 redis가 Ehcache보다 우선순위가 높아 기본 CacheManger를 RedissonSpringCacheManager로 설정한다.
 
----
+따라서, 따로 Ehcache용 CacheManager를 @Bean으로 등록해주어야 한다. 
+여기서 중요한것은 org.springframework.cache.CacheManger 인터페이스의 구현체로 
+org.springframework.cache.ehcache.EhCacheCacheManager 가 있는데, 이 클래스는 Ehcache2 버전에 사용되는 것이다. 
+처음에도 말했듯이 Ehcache3는 JCache의 한 종류로 JCacheCacheManger로 등록해줘야한다.
 
-### **[aync-config](https://github.com/Chiptune93/springboot-examples/tree/aync-config)**
+```java
+import java.io.IOException;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
+import javax.cache.spi.CachingProvider;
+import org.springframework.cache.jcache.JCacheCacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
-- AsyncConfig
-  - 비동기 처리를 위한 스레드 실행 계획 설정 클래스
+@Configuration
+public class EhcacheConfig {
 
----
+	@Bean(name = "ehCacheManager")
+	public org.springframework.cache.CacheManager cacheManager() throws IOException {
+		CachingProvider cachingProvider = Caching.getCachingProvider("org.ehcache.jsr107.EhcacheCachingProvider");
+		CacheManager manager = cachingProvider.getCacheManager(
+				new ClassPathResource("/ehcache.xml").getURI(),
+				getClass().getClassLoader());
 
-### **[cors](https://github.com/Chiptune93/springboot-examples/tree/cors)**
+		return new JCacheCacheManager(manager);
+	}
+}
+```
 
-- SampleController
-    - 컨트롤러 레벨에서 CORS를 컨트롤하기 위한 설정 예시
-- WebConfig
-    - SpringBoot Config 레벨에서 CORS를 컨트롤하기 위한 설정 예시
-- CorsFilter
-    - Filter를 이용한 CORS 처리 예시
-
----
-
-### **[dynamic-datasource](https://github.com/Chiptune93/springboot-examples/tree/dynamic-datasource)**
-
-- SQLConfig
-    - 마스터/슬레이브 데이터베이스 설정을 위한 멀티 데이터 소스 예시
-- SQLRoutingDataSource
-    - 어노테이션을 통한 분기 처리용 클래스
-
----
-
-### **[file-upload](https://github.com/Chiptune93/springboot-examples/tree/file-upload)**
-   
-- 파일 업로드/다운로드 예제 구현
+위 내용 출처 및 참고 [https://px201226.github.io/ehcache3/](https://px201226.github.io/ehcache3/)
 
 ---
 
-### **[h2-database](https://github.com/Chiptune93/springboot-examples/tree/h2-database)**
+### 테스트
 
-- h2-database를 간단히 사용하는 예제
+샘플로 생성한 `UserService`에 캐시를 지정한다.
 
+```java
+@Service
+public class UserService {
+    final
+    UserRepo userRepo;
 
-### **[jsp-for-view](https://github.com/Chiptune93/springboot-examples/tree/jsp-for-view)**
-- springboot use jsp for view
+    public UserService(UserRepo userRepo) {
+        this.userRepo = userRepo;
+    }
 
----
+    @Cacheable(
+            value = "UserCache",
+            key = "#id"
+    )
+    public Users getUser(Long id) {
+        return userRepo.findById(id).get();
+    }
 
-### **[msa-architecture](https://github.com/Chiptune93/springboot-examples/tree/msa-architecture)**
-- MSA 구조를 위한 아키텍처 예시
+}
 
----
+```
 
-### **[restapi](https://github.com/Chiptune93/springboot-examples/tree/restapi)**
-- REST API 구현 예제
+유저 하나를 조회할 때 이 결과를 캐싱한다. 키 값은 메소드 파라미터인 id로 잡았다.
 
----
+```java
 
-### **[spring-cloud](https://github.com/Chiptune93/springboot-examples/tree/spring-cloud)**
-- web client & server for spring cloud
+@SpringBootTest
+class UserServiceTest {
 
----
+    @Autowired
+    UserService userService;
 
-### **[swagger](https://github.com/Chiptune93/springboot-examples/tree/swagger)**
-- 스웨거 사용 예제
+    @DisplayName("캐싱 테스트")
+    @Test
+    public void cachingTest() {
+        userService.getUser(1L);
+    }
 
----
+}
+```
 
-### **[Thymeleaf](https://github.com/Chiptune93/springboot-examples/tree/thymeleaf)**
-- 타임리프를 빠르게 사용하기 위한 예제
+테스트에서 메소드를 호출해본다.
 
----
+```bash
+2024-04-08 23:43:52.095  INFO 12616 --- [    Test worker] h2database                               : jdbc[3] 
+/*SQL l:159 #:1*/SELECT \"USERS\".\"ID\" AS \"ID\", \"USERS\".\"EMAIL\" AS \"EMAIL\", \"USERS\".\"PASSWORD\" AS \"PASSWORD\", \"USERS\".\"USERNAME\" AS \"USERNAME\" FROM \"USERS\" WHERE \"USERS\".\"ID\" = ? {1: CAST(1 AS BIGINT)};
+2024-04-08 23:43:52.100  INFO 12616 --- [    Test worker] h2database                               : jdbc[3] 
+/*SQL #:1*/CALL DATABASE();
+2024-04-08 23:43:52.106  INFO 12616 --- [    Test worker] h2database                               : jdbc[3] 
+/*SQL */COMMIT;
+2024-04-08 23:43:52.106  INFO 12616 --- [    Test worker] h2database                               : jdbc[3] 
+/*SQL */COMMIT;
+2024-04-08 23:43:52.111  INFO 12616 --- [e [_default_]-0] d.c.s.listener.CustomCacheEventListener  : ━━━━━━━━━━━━━━━━━BaseCacheEventListener START━☂☄
+2024-04-08 23:43:52.112  INFO 12616 --- [e [_default_]-0] d.c.s.listener.CustomCacheEventListener  : ☆ﾟ.*･｡ﾟ Cache Key : 1 ᝯ◂ ࠫ‘֊‘ ࠫ▾ಎ➹
+2024-04-08 23:43:52.112  INFO 12616 --- [e [_default_]-0] d.c.s.listener.CustomCacheEventListener  : ☆ﾟ.*･｡ﾟ Cache Old Value : null ᝯ◂ ࠫ‘֊‘ ࠫ▾ಎ➹
+2024-04-08 23:43:52.116  INFO 12616 --- [e [_default_]-0] d.c.s.listener.CustomCacheEventListener  : ☆ﾟ.*･｡ﾟ Cache New Value : Users(id=1, username=user1, email=user1@example.com, password=pass1) ᝯ◂ ࠫ‘֊‘ ࠫ▾ಎ➹
+2024-04-08 23:43:52.116  INFO 12616 --- [e [_default_]-0] d.c.s.listener.CustomCacheEventListener  : ━━━━━━━━━━━━━━━━━BaseCacheEventListener END━☂☄
+> Task :test
+2024-04-08 23:43:52.121  INFO 12616 --- [       Thread-4] h2database                               : database closing mem:h2-test from shutdown hook
+```
 
-### **[spring-data-jdbc](https://github.com/Chiptune93/springboot-examples/tree/spring-data-jdbc)**
-- spring-data-jdbc 예제
-
----
-
-## feature
-
-### spring-security 5.7
-
-### **[jwt-token](https://github.com/Chiptune93/springboot.java.example/tree/feature/spring-security/jwt-token)**
-- JWT Token 인증 방식 구현
-- 최대한 간단하게 구현하려고 노력한 버전
-
----
- 
-### **[form-login](https://github.com/Chiptune93/springboot.java.example/tree/feature/spring-security/form-login)**
-- 폼 로그인 예제를 구현
-- 시큐리티 클래스 중, 구현한 것
-    - UserDetails
-    - UserDetailsService
-- 암호화 인코더 없음
-- 인가 처리 하지 않음
+캐시가 정상 동작하는 것을 확인할 수 있다.
