@@ -40,7 +40,3 @@
     - make short response time as you can
     - authorize policy (keym token ...)
     - documentation and test guide
-
-- what is next ?
-    * response 내에 request 정보 같이 담아서 리턴하기
-    * 버저닝, 필터링 고도화
