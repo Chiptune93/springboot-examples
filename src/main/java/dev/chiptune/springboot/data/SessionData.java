@@ -21,4 +21,34 @@ public class SessionData {
     // 'sessionToken' 필드에 적용되어 있으며, 이 토큰을 통해 효율적인 조회가 가능합니다.
     @Indexed
     private String sessionToken;
+
+    public SessionData(String sessionToken, String sessionId, String id) {
+        this.sessionToken = sessionToken;
+        this.sessionId = sessionId;
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public void setSessionToken(String sessionToken) {
+        this.sessionToken = sessionToken;
+    }
 }

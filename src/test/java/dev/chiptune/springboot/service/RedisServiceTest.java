@@ -1,8 +1,12 @@
 package dev.chiptune.springboot.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.chiptune.springboot.data.SessionData;
+import dev.chiptune.springboot.repository.SessionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -19,7 +23,7 @@ public class RedisServiceTest {
     @MockBean
     private StringRedisTemplate stringRedisTemplate;
 
-    @Mock
+    @InjectMocks
     private ValueOperations<String, String> valueOperations;
 
     @Autowired
@@ -54,5 +58,22 @@ public class RedisServiceTest {
 
         // 검증: valueOperations의 get 메서드가 "testKey"로 호출되었는지 검증
         verify(valueOperations).get("testKey");
+    }
+
+    @Test
+    public void testFindBySessionId() {
+        // 세션 데이터 예제 생성
+        SessionData expectedSession = new SessionData("token_123", "123", "1");
+
+        // 세션 ID로 세션 데이터 조회 시, 설정된 객체를 반환하도록 설정
+        when(redisService.getSessionData("123")).thenReturn(expectedSession);
+
+        // 실제 테스트 실행
+        SessionData result = redisService.getSessionData("123");
+
+        // 검증
+        assertNotNull(result);
+        assertEquals("123", result.getSessionId());
+        assertEquals("token_123", result.getSessionToken());
     }
 }
