@@ -8,11 +8,14 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 
 @Configuration
+// CRUDRepository 사용을 위한 어노테이션 등록
+@EnableRedisRepositories
 public class RedisConfig {
 
     // @Value 어노테이션을 사용하여 application.properties 파일의
