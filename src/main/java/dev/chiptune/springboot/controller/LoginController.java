@@ -28,4 +28,16 @@ class LoginController {
         model.addAttribute("data", usersService.findAllUsers());
         return "sample";
     }
+
+    @GetMapping("/admin/home")
+    String adminHome(Model model) {
+        model.addAttribute("data", usersService.findAllUsers());
+        return "/admin/home";
+    }
+
+    @GetMapping("/user/home")
+    String userHome(Model model) {
+        model.addAttribute("data", usersService.findAllUsers());
+        return "/user/home";
+    }
 }

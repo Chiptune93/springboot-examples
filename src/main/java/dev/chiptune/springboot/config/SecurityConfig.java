@@ -1,6 +1,9 @@
 package dev.chiptune.springboot.config;
 
 import dev.chiptune.springboot.config.security.filter.CustomAuthenticationFilter;
+import dev.chiptune.springboot.config.security.handler.CustomAccessDeniedHandler;
+import dev.chiptune.springboot.config.security.handler.CustomAuthenticationEntryPoint;
+import dev.chiptune.springboot.config.security.handler.CustomAuthenticationSuccessHandler;
 import dev.chiptune.springboot.config.security.provider.CustomAuthenticationProvider;
 import dev.chiptune.springboot.config.security.userDetails.CustomUserDetailService;
 import dev.chiptune.springboot.service.UsersService;
@@ -54,11 +57,19 @@ public class SecurityConfig {
                 .and()
                 // HTTP 요청에 대한 접근 제어를 구성합니다.
                 .authorizeHttpRequests(authz -> authz
+                        .antMatchers("/admin/**").hasAnyAuthority("ADMIN")
+                        .antMatchers("/user/**").hasAnyAuthority("USER")
+                        .requestMatchers(new AntPathRequestMatcher("/error/**")).permitAll() // "/sample" 경로에 대해서는 인증 없이 접근을 허용합니다.
                         .requestMatchers(new AntPathRequestMatcher("/sample")).permitAll() // "/sample" 경로에 대해서는 인증 없이 접근을 허용합니다.
                         .requestMatchers(new AntPathRequestMatcher("/login")).permitAll() // "/login" 경로에 대해서도 인증 없이 접근을 허용합니다.
                         .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll() // "/h2-console/**" 경로에 대해서도 인증 없이 접근을 허용합니다.
                         .anyRequest().authenticated() // 위에 정의된 경로를 제외한 모든 요청에 대해서는 인증을 요구합니다.
                 )
+                // 에러 핸들링을 구성한다.
+                .exceptionHandling()
+                .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                .accessDeniedHandler(new CustomAccessDeniedHandler())
+                .and()
                 // 커스텀 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가합니다.
                 .addFilterAt(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -84,7 +95,7 @@ public class SecurityConfig {
         CustomAuthenticationFilter filter = new CustomAuthenticationFilter();
         filter.setAuthenticationManager(authenticationManager()); // 인증 관리자를 설정합니다.
         filter.setFilterProcessesUrl("/loginProc"); // 인증 처리 URL을 설정합니다.
-        filter.setAuthenticationSuccessHandler(new SimpleUrlAuthenticationSuccessHandler("/home")); // 인증 성공 핸들러를 설정합니다.
+        filter.setAuthenticationSuccessHandler(new CustomAuthenticationSuccessHandler()); // 인증 성공 핸들러를 설정합니다.
         filter.setAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error")); // 인증 실패 핸들러를 설정합니다.
         return filter; // CustomAuthenticationFilter 인스턴스를 반환합니다.
     }

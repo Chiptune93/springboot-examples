@@ -33,12 +33,22 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         System.out.println("password in AuthenticationProvider -> " + password);
         System.out.println("------------------------------");
 
-        UserDetails user = new CustomUserDetails(usersService.findByUsernameAndPassword(username, password));
+        // 사용자를 조회할 떄, 권한 데이터 조회해서 CustomAuthenticationToken(인증 요청 객체)를 생성한다.
+        UserDetails user;
+        try {
+             user = new CustomUserDetails(usersService.findByUsernameAndPassword(username, password));
+        } catch (AuthenticationException e) {
+            e.printStackTrace();
+            throw e;
+        }
 
         if (user.getUsername() == null) {
             throw new BadCredentialsException("username is not found. username=" + username);
         }
 
+        System.out.println("------------------------------");
+        System.out.println("user.getAuthorities() -> " + user.getAuthorities());
+        System.out.println("------------------------------");
         return new CustomAuthenticationToken(username, password, user.getAuthorities());
     }
 

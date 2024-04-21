@@ -11,6 +11,7 @@ public class CustomAuthenticationToken extends UsernamePasswordAuthenticationTok
 
     // 인증 요청용 토큰, 인증 여부가 false
     public CustomAuthenticationToken(String email, String credentials) {
+        // 인증 실패 시, 권한은 넘기지 않는다.
         super(email, credentials);
         this.email = email;
         this.credentials = credentials;
@@ -18,7 +19,8 @@ public class CustomAuthenticationToken extends UsernamePasswordAuthenticationTok
 
     // 인증 성공용 토큰, 인증여부가 true
     public CustomAuthenticationToken(String email, String credentials, Collection<? extends GrantedAuthority> authorities) {
-        super(email, credentials, null);
+        // 인증 성공 시, 권한까지 같이 넘겨 토큰을 생성한다.
+        super(email, credentials, authorities);
         this.email = email;
         this.credentials = credentials;
     }
