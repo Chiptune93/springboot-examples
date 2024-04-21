@@ -11,3 +11,13 @@ spring:
     console:
       enabled: true # localhost:8080/h2-console 로 접속하면 아래와 같은 화면이 나오며, 접속이 가능하다.
       path: /h2-console
+
+  thymeleaf:
+    cache: false
+    suffix: .html
+    enabled: true
+    check-template-location: true
+    prefix: classpath:/templates/
+  sql:
+    init:
+      mode: always

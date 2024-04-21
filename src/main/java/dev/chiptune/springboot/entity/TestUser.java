@@ -18,10 +18,12 @@ public class TestUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    private String password;
     private String email;
 
-    public TestUser(String name, String email) {
+    public TestUser(String name, String password, String email) {
         this.name = name;
+        this.password = password;
         this.email = email;
     }
 }

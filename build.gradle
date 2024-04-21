@@ -23,6 +23,7 @@ dependencies {
     // 기본 테스트용 데이터베이스 및 JPA 구성
     implementation 'com.h2database:h2'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 }
 
 tasks.named('test') {
