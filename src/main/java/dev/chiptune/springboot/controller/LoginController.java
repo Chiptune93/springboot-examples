@@ -1,5 +1,6 @@
 package dev.chiptune.springboot.controller;
 
+import dev.chiptune.springboot.error.CustomNotFoundException;
 import dev.chiptune.springboot.service.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
