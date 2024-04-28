@@ -15,7 +15,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     compileOnly 'org.projectlombok:lombok'
@@ -23,7 +22,27 @@ dependencies {
     // 기본 테스트용 데이터베이스 및 JPA 구성
     implementation 'com.h2database:h2'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // 예제를 위한 종속성
+    implementation("org.springframework.boot:spring-boot-starter") {
+        // log4j2 사용을 위해 기본 로깅 처리 클래스 제외
+        exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
+    }
+    // spring data mongodb
+    // implementation 'org.springframework.data:spring-data-mongodb'
+    // mongo db java driver
+    // implementation 'org.mongodb:mongodb-driver-sync:4.6.1'
+    // log4j2
+    implementation 'org.apache.logging.log4j:log4j-mongodb4'
+    implementation 'org.apache.logging.log4j:log4j-core'
 }
+
+configurations {
+    all {
+        // log4j2 사용을 위해 기본 로깅 처리 클래스 제외
+        exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
+    }
+}
+
 
 tasks.named('test') {
     useJUnitPlatform()

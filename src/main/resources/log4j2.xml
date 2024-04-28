@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG" scan="true" scanPeriod="1 hour">
+    <!--
+    Configuration:
+    status - 로그 설정의 로드와 관련된 문제를 기록할 레벨 설정 (INFO)
+    scan - 설정 파일의 변경을 주기적으로 확인하고 자동으로 다시 로드 (true)
+    scanPeriod - 설정 재스캔 주기, 여기서는 1시간마다 재스캔
+    -->
+
+    <Properties>
+        <!-- 로그 파일 디렉토리와 로그 패턴을 전역 속성으로 설정 -->
+        <Property name="DIR_PATH">./logs</Property> <!-- 로그 파일이 저장될 기본 디렉토리 -->
+        <Property name="LOG_PATTERN">[${sys:spring.profiles.active}][%d{yyyy-MM-dd HH:mm:ss.SSS}][%t][%-5level][%logger{36}] - %msg%n%throwable</Property>
+        <Property name="PROFILE">${sys:spring.profiles.active:-unknown}</Property>
+        <!-- 로그 메시지 포맷:
+             %d - 날짜와 시간
+             [%t] - 이벤트를 생성한 스레드 이름
+             %-5level - 로그 레벨 (INFO, ERROR 등), 5자리 폭으로 정렬
+             %logger{36} - 로거 이름, 최대 36자 출력
+             %msg - 로그 메시지
+             %n - 개행 문자
+             %throwable - 예외 발생 시 스택 트레이스 출력
+        -->
+    </Properties>
+
+    <Appenders>
+        <!-- 콘솔 Appender: 로그를 콘솔(시스템 출력)에 기록 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+
+        <!-- RollingFile Appender: 로그를 파일에 기록하고, 파일 크기 또는 시간에 따라 새 파일로 롤링 -->
+        <RollingFile name="RollingFile" fileName="${DIR_PATH}/application.log"
+                     filePattern="${DIR_PATH}/application-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <!-- 롤링 정책: 시간 또는 크기 기반으로 로그 파일 롤링 -->
+            </Policies>
+            <DefaultRolloverStrategy>
+                <!-- 롤링 파일 전략 -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/> <!-- 매일 새 파일 생성 -->
+                <SizeBasedTriggeringPolicy size="100MB"/> <!-- 파일 크기가 100MB에 도달하면 새 파일 생성 -->
+                <DefaultRolloverStrategy max="50"/> <!-- 최대 50개의 롤링 파일 유지 -->
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- MongoDB Appender: 로그 이벤트를 MongoDB 데이터베이스에 저장 -->
+        <NoSql name="MongoDbAppender">
+            <MongoDb4
+                    connection="mongodb://log:1234@192.168.0.100:${sys:MongoDBTestPort:-27017}/logging.logs"
+                    capped="true"
+                    collectionSize="1073741824"/>
+            <!-- capped collection 사용 -->
+            <!-- 컬렉션 최대 크기 (1GB) 설정 -->
+        </NoSql>
+    </Appenders>
+
+    <Loggers>
+        <!-- Root Logger 설정 -->
+        <Root level="INFO">
+            <!-- 로거의 기본 레벨을 INFO로 설정 -->
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="MongoDbAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
