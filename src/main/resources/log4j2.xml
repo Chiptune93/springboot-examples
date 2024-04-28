@@ -47,7 +47,7 @@
         <!-- MongoDB Appender: 로그 이벤트를 MongoDB 데이터베이스에 저장 -->
         <NoSql name="MongoDbAppender">
             <MongoDb4
-                    connection="mongodb://log:1234@192.168.0.100:${sys:MongoDBTestPort:-27017}/logging.logs"
+                    connection="mongodb://log:1234@localhost:${sys:MongoDBTestPort:-27017}/logging.logs"
                     capped="true"
                     collectionSize="1073741824"/>
             <!-- capped collection 사용 -->
