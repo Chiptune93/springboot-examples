@@ -1,13 +1,48 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
   jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
     database-platform: org.hibernate.dialect.H2Dialect
 
   h2:
     console:
       enabled: true # localhost:8080/h2-console 로 접속하면 아래와 같은 화면이 나오며, 접속이 가능하다.
       path: /h2-console
+
+  # thymeleaf
+  thymeleaf:
+    prefix: classpath:templates/ # 템플릿 파일들이 위치할 기본 폴더를 설정합니다.
+    # 'classpath:'는 애플리케이션의 클래스패스를 기준으로 경로를 지정함을 의미합니다.
+    # 따라서, 'classpath:templates/'는 프로젝트 내의 'src/main/resources/templates/' 폴더를 가리킵니다.
+
+    check-template-location: true # Thymeleaf가 시작될 때, 템플릿 파일들이 존재하는 위치(check-template-location)의 유효성을 검사할지 여부를 결정합니다.
+    # true로 설정하면, 지정된 폴더('classpath:templates/')가 실제로 존재하는지 확인합니다.
+    # 이는 애플리케이션 시작 시 발생할 수 있는 경로 관련 오류를 미리 발견하는 데 도움이 됩니다.
+
+    suffix: .html # Thymeleaf 템플릿 파일들의 기본 파일 확장자를 설정합니다.
+    # 이 설정으로 인해, Thymeleaf는 템플릿 이름 뒤에 자동으로 '.html' 확장자를 붙여 해당 파일을 찾게 됩니다.
+    # 예를 들어, 'index'라는 이름의 템플릿을 렌더링하려 할 때, 실제로는 'index.html' 파일을 찾게 됩니다.
+
+    mode: HTML # Thymeleaf가 사용할 템플릿 모드를 설정합니다.
+    # 'HTML' 모드는 HTML5에 최적화된 처리를 수행하며, 템플릿 파일들이 HTML 형식임을 의미합니다.
+    # Thymeleaf는 다른 모드(예: XML, TEXT 등)도 지원하지만, 웹 개발에서는 주로 HTML 모드를 사용합니다.
+
+    cache: false # Thymeleaf 템플릿 캐싱을 활성화할지 여부를 설정합니다.
+    # 개발 중에는 'false'로 설정하여, 템플릿 파일을 수정할 때마다 변경사항이 즉시 반영되도록 합니다.
+    # 이는 개발 과정을 보다 편리하게 만들어 줍니다.
+    # 반면, 운영 환경에서는 성능을 위해 'true'로 설정하여 템플릿 파일들이 캐시되도록 하는 것이 일반적입니다.
+    # 캐시가 활성화되면, Thymeleaf는 템플릿 파일을 한 번만 읽고, 그 결과를 재사용함으로써 렌더링 성능을 향상시킵니다.
+
+logging:
+  level:
+    root: DEBUG
+    org:
+      springframework:
+        web: DEBUG
+      hibernate: ERROR

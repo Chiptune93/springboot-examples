@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <title>Admin</title>
+</head>
+<body>
+<h1>Admin!</h1>
+<div>
+    <h2>Welcome to Admin!</h2>
+    <div>
+        <!-- list -->
+        <div sec:authorize="hasAnyAuthority(${userId} + '_ACCESS')">
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,5 +1,20 @@
 CREATE TABLE IF NOT EXISTS test_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL
+    user_id VARCHAR(255) NOT NULL,
+    user_pw VARCHAR(255) NOT NULL,
+    user_type VARCHAR(255) NOT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    user_email VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS test_user_role (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    role_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS test_user_authlist (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    auth_name VARCHAR(255) NOT NULL
 );
